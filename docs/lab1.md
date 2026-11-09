@@ -1,0 +1,3 @@
+copie de `requirements.txt` , installe les dépendances avant de copier le code, ce qui garde leur installation en cache quand je change le code.
+Avec la base `python:3.12-slim`, le `.dockerignore` et les options de pip qui évitent le cache et la création desa fichiers `.pyc` à l’installation, l’image passe de 2,55 Go à 548 Mo.
+Le programme tourne avec l’utilisateur `app`, c'est pas root, et `OUTPUT_DIR=/out` avec un volume pour garder le fichier `stations.parquet` sur le local.

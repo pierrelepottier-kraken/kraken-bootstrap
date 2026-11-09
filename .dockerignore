@@ -1,0 +1,13 @@
+.git
+.venv
+output
+out
+tests
+.idea
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/*.py[cod]
+**/.DS_Store
+.env
+.env.*

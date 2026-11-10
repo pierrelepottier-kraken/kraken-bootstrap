@@ -1,0 +1,14 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  kraken:
+    uses: pierrelepottier-kraken/kraken/.github/workflows/kraken.yml@main

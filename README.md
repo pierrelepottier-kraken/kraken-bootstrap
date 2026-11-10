@@ -13,8 +13,31 @@ Petit job de données (stations de vélos en libre-service → taux de remplissa
 
 1. Clique sur **Use this template** pour créer ton propre dépôt.
 2. Clone-le sur ta machine.
-3. Vérifie ton poste : `make doctor`
-4. Installe, teste, lint et lance : `make install test lint run`
+3. Installe `just` (sur macOS : `brew install just`).
+4. Vérifie ton poste avec `make doctor`, puis installe les dépendances avec `make install`.
+5. Vérifie le code et lance le programme : `make ci run`.
+
+## Commandes du Lab 2
+
+Chaque dépôt de job fournit son propre `justfile` à la racine, avec les mêmes noms de recettes pour que la CI sache quoi appeler :
+
+- `just install` : installer les dépendances ; ici, dans `.venv`.
+- `just lint` : vérifier le code ; ici, avec Ruff.
+- `just test` : lancer les tests ; pour ce job Python, produire `reports/junit.xml`, y compris quand un test échoue.
+- `just ci` : raccourci local pour lancer le lint puis les tests, en s'arrêtant si une étape échoue.
+
+Une recette réussie renvoie le code de sortie `0` ; un échec renvoie un code non nul, ce qui fait échouer l'étape GitHub Actions. Le rapport JUnit permet de lire le détail des tests.
+
+Depuis `kraken-bootstrap`, tu peux utiliser `make install`, `make lint`, `make test` ou `make ci` : ces commandes appellent directement le `justfile` du dépôt. Pour le Lab 2, utilise Python 3.12 : `make install PYTHON=python3.12` si ce n'est pas ton `python3` par défaut.
+
+Le Makefile reste pratique pour la démo :
+
+- `make ci` : lancer Ruff et les tests, avec un rapport dans `reports/junit.xml`.
+- `make ci-report` : lire le résumé du dernier rapport local.
+- `make ci-runs` : voir les dernières exécutions sur GitHub, une fois les workflows publiés.
+- `make ci-logs RUN_ID=123456` : lire les logs d'une exécution, avec son identifiant donné par `make ci-runs`.
+
+Dans GitHub Actions, `kraken-bootstrap/.github/workflows/ci.yml` appelle le workflow complet de `kraken`. Celui-ci enchaîne les jobs `lint-test` et `build-push` : il récupère le dépôt appelant et utilise ses recettes `just install`, `just lint` et `just test` dans des étapes séparées, pour voir où ça échoue. Chaque dépôt peut donc adapter ses commandes tout en gardant les mêmes noms pour la CI. Les commandes de démo ci-dessus ne font ni commit, ni push, ni publication d'image.
 
 ## Variables d'environnement
 

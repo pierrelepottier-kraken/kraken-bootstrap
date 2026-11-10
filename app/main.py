@@ -1,4 +1,4 @@
-"""Job de données : stations de vélos -> taux de remplissage -> Parquet."""
+"""Data job: bike stations -> fill rates -> Parquet."""
 
 import os
 from pathlib import Path
@@ -20,7 +20,7 @@ def load(source: str) -> pd.DataFrame:
     df = pd.read_csv(source)
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
-        raise ValueError(f"Colonnes manquantes : {', '.join(missing)}")
+        raise ValueError(f"Missing columns: {', '.join(missing)}")
     return df[REQUIRED_COLUMNS]
 
 
@@ -46,7 +46,7 @@ def main() -> None:
     source = os.environ.get("SOURCE_URL", "data/stations.csv")
     output_dir = os.environ.get("OUTPUT_DIR", "output")
     out_file = run(source, output_dir)
-    print(f"Écrit : {out_file}")
+    print(f"Written: {out_file}")
 
 
 if __name__ == "__main__":

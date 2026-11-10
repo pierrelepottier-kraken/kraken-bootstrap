@@ -1,10 +1,12 @@
 PYTHON ?= python3
 IMAGE ?= kraken-bootstrap
 OUT_DIR ?= out
+RUN_ID ?=
 
 .DEFAULT_GOAL := help
 
-.PHONY: help doctor install test lint run docker-build docker-rebuild docker-run \
+.PHONY: help doctor install test lint run ci ci-report ci-runs ci-logs \
+	docker-build docker-rebuild docker-run \
 	docker-run-volume docker-output docker-info docker-images docker-ps \
 	docker-history docker-shell docker-check
 
@@ -13,9 +15,18 @@ help:
 		'Commandes locales (sur le Mac) :' \
 		'  make doctor          Vérifier les outils et la connexion GitHub' \
 		'  make install         Installer les dépendances dans .venv' \
-		'  make test            Lancer les tests Python' \
+		'  make test            Lancer les tests et créer reports/junit.xml' \
 		'  make lint            Vérifier le code avec Ruff' \
 		'  make run             Lancer le programme localement : output/stations.parquet' \
+		'' \
+		'Lab 2 : vérifier et présenter la CI :' \
+		'  make ci              Lancer Ruff puis les tests via just, avec un rapport JUnit' \
+		'  make ci-report       Lire le résumé du dernier rapport local' \
+		'  make ci-runs         Voir les 5 dernières exécutions sur GitHub (lecture seule)' \
+		'  make ci-logs RUN_ID=123  Lire les logs GitHub de cette exécution' \
+		'  install, lint, test et ci utilisent just : brew install just sur le Mac.' \
+		'  Ces commandes utilisent le justfile à la racine de ce dépôt.' \
+		'  Les commandes GitHub nécessitent gh connecté et des workflows déjà publiés.' \
 		'' \
 		'Construire et lancer Docker :' \
 		'  make docker-build       Construire avec le cache et afficher les étapes' \
@@ -42,13 +53,29 @@ doctor:
 	@./scripts/doctor.sh
 
 install:
-	$(PYTHON) -m venv .venv && .venv/bin/pip install -q -r requirements-dev.txt
+	PYTHON="$(PYTHON)" just install
 
 test:
-	.venv/bin/pytest -q
+	just test
 
 lint:
-	.venv/bin/ruff check .
+	just lint
+
+# Les mêmes commandes de vérification sont utilisées en local et dans la CI.
+ci:
+	just ci
+
+ci-report:
+	@test -f reports/junit.xml || { printf '%s\n' 'Rapport absent : lance make test ou make ci.'; exit 1; }
+	@.venv/bin/python -c 'import xml.etree.ElementTree as ET; suites = list(ET.parse("reports/junit.xml").getroot().iter("testsuite")); totals = {key: sum(int(suite.get(key, "0")) for suite in suites) for key in ("tests", "failures", "errors")}; print("Tests : {tests} | Échecs : {failures} | Erreurs : {errors}".format(**totals))'
+
+# Lecture seule : ces commandes ne lancent ni workflow ni publication.
+ci-runs:
+	gh run list --limit 5
+
+ci-logs:
+	@test -n "$(RUN_ID)" || { printf '%s\n' 'Indique un identifiant : make ci-logs RUN_ID=123 (visible avec make ci-runs).'; exit 1; }
+	gh run view "$(RUN_ID)" --log
 
 run:
 	.venv/bin/python -m app.main

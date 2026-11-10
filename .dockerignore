@@ -1,5 +1,7 @@
 .git
+.github
 .venv
+reports
 output
 out
 tests
